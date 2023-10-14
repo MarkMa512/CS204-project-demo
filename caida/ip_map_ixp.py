@@ -4,12 +4,14 @@
 import json
 import argparse
 
+
 def findIndex(ip, ixs):
     for i in range(0, len(ixs)):
         for x in ixs[i]['prefixes']['ipv4']:
             if ip == x.split('/')[0]:
                 return i
             
+
 def exportCSV(ips, ixs):
     data = "ip,ixID,ixName\n"
     for ip in ips:
@@ -22,17 +24,13 @@ def exportCSV(ips, ixs):
             data += '\n'
     file = open(args.ixp_list, "w")
     file.write(data)
+
+
 def printIXs(ips, ixs):
     for ip in ips:
         if findIndex(ip, ixs) is not None:
             print(ip, "|", ixs[findIndex(ip, ixs)]['ix_id'], "|", ixs[findIndex(ip, ixs)]['name'])
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--in', dest='ip_list', type=str, required=True, help="Path to IP list.")
-parser.add_argument('-o', '--out', dest='ixp_list', type=str, required=False, help="Path to save as CSV.")
-parser.add_argument('-ix', dest='ix_file', type=str, required=True, help="Path to IXP data.")
-args = parser.parse_args()
 
 #Open ixp jsonl and convert into dictionary entries:
 def parseJSONL(ixpJSONL):
@@ -54,6 +52,7 @@ def parseJSONL(ixpJSONL):
     #Return completed dictionary
     return ixs
 
+
 #Make IP file into a list of IPs:
 def parseIPs(ipFile):
     try:
@@ -68,27 +67,34 @@ def parseIPs(ipFile):
     return ips
 
 
-ixs = parseJSONL(args.ix_file)
-ips = parseIPs(args.ip_list)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--in', dest='ip_list', type=str, required=True, help="Path to IP list.")
+    parser.add_argument('-o', '--out', dest='ixp_list', type=str, required=False, help="Path to save as CSV.")
+    parser.add_argument('-ix', dest='ix_file', type=str, required=True, help="Path to IXP data.")
+    args = parser.parse_args()
 
-#If -o argument is selected export to CSV with selected name and print values to terminal:
-ip_ixs = {}
-if args.ixp_list is not None:
-    exportCSV(ips, ixs)
+    ixs = parseJSONL(args.ix_file)
+    ips = parseIPs(args.ip_list)
 
-    for ip in ips:
-        ip_ixs[ip] = {
-            'ip' : ip,
-            'name' : ixs[findIndex(ip, ixs)]['name'],
-            'ix_id' : ixs[findIndex(ip, ixs)]['ix_id']
-        }
+    #If -o argument is selected export to CSV with selected name and print values to terminal:
+    ip_ixs = {}
+    if args.ixp_list is not None:
+        exportCSV(ips, ixs)
 
-#If -o argument is not selected only print values to terminal:
-if args.ixp_list is None:
-    for ip in ips:
-        ip_ixs[ip] = {
-            'ip' : ip,
-            'name' : ixs[findIndex(ip, ixs)]['name'],
-            'ix_id' : ixs[findIndex(ip, ixs)]['ix_id']
-        }
-    printIXs(ips, ixs)
+        for ip in ips:
+            ip_ixs[ip] = {
+                'ip' : ip,
+                'name' : ixs[findIndex(ip, ixs)]['name'],
+                'ix_id' : ixs[findIndex(ip, ixs)]['ix_id']
+            }
+
+    #If -o argument is not selected only print values to terminal:
+    if args.ixp_list is None:
+        for ip in ips:
+            ip_ixs[ip] = {
+                'ip' : ip,
+                'name' : ixs[findIndex(ip, ixs)]['name'],
+                'ix_id' : ixs[findIndex(ip, ixs)]['ix_id']
+            }
+        printIXs(ips, ixs)
