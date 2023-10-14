@@ -2,7 +2,13 @@ import re
 import requests
 import subprocess
 
-def trace_route(target_url):
+def trace_route(target_url:str) -> list:
+    """
+    Perform a traceroute and obtain all the IP addresses 
+    :param target_url:  
+    :return: a list of IP address of the hops that 
+    
+    """
     cmd = ['traceroute',  target_url]
     process = subprocess.Popen(
         cmd,
@@ -29,7 +35,7 @@ def trace_route(target_url):
     hops = hops[1:] # omit the first ip address as it is the destination ip address 
     return hops
 
-def get_ip_location(ip_address):
+def get_ip_location(ip_address:str):
     try:
         response = requests.get(f"https://ipinfo.io/{ip_address}/json")
         data = response.json()
