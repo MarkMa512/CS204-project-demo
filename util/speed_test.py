@@ -1,6 +1,10 @@
 import subprocess
 import speedtest
 
+import logging
+
+logger:logging.Logger = logging.getLogger(__name__)
+
 def ping_test(target_url:str, count:int=4):
     """
     Get the latency to the target URL 

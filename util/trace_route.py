@@ -1,6 +1,9 @@
 import re
 import requests
 import subprocess
+import logging
+
+logger:logging.Logger = logging.getLogger(__name__)
 
 def trace_route(target_url:str) -> list:
     """
@@ -51,5 +54,5 @@ def get_ip_location(ip_address:str):
     except requests.RequestException as e:
         return str(e)
 
-def get_locations(ip_addresses):
+def get_locations(ip_addresses)->dict:
     return {ip: get_ip_location(ip) for ip in ip_addresses}

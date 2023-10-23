@@ -1,5 +1,9 @@
 import subprocess
 
+import logging
+
+logger:logging.Logger = logging.getLogger(__name__)
+
 def get_ssid_macos():
     """
     Retrieve the SSID of the connected WiFi on macOS through a shell command.

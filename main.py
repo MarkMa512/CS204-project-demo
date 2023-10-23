@@ -21,7 +21,7 @@ logger:logging.Logger = logging.getLogger(__name__)
 
 def main() -> None:
     # Get the WiFi information
-    logger.info(f"Getting WiFi Information")
+    logger.info(f"Getting WiFi Information: ")
     info = get_wifi_info_macos()
     for key, value in info.items():
         print(f"{key}: {value}")
