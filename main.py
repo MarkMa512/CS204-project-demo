@@ -1,23 +1,31 @@
+from datetime import datetime
 import logging
 
 
 from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
 from util.network import get_wifi_info_macos
-
-# the 2 function belows are retired
-# from caida.ip_map_ixp import parseJSONL, printIXs
-
 from caida.map_ixp import extract_ipv4_name_dict_from, longest_prefix_match, get_organization
 
-# logging.basicConfig(format="%(asctime)s %(levelname)s %(filename)s:%(funcName)s():%(lineno)i: %(message)s",
-#                     datefmt="%Y-%m-%d %H:%M:%S", level=logging.INFO)
+# Create a logger 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
+# Get the current date and time and format it as desired for the log filename
+log_filename = datetime.now().strftime("%Y-%m-%d %H:%M:%S_trace.log")
 
-logging.basicConfig(format="%(asctime)s:%(funcName)s(): %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S", level=logging.INFO)
+# Create a file handler for writing the logs to a file
+file_handler = logging.FileHandler(log_filename)
+file_handler.setFormatter(logging.Formatter("%(asctime)s:%(funcName)s(): %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
 
-logger:logging.Logger = logging.getLogger(__name__)
+# Create a stream handler for writing the logs to the console
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(logging.Formatter("%(asctime)s:%(funcName)s(): %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
 
 def main() -> None:
     # Get the WiFi information
@@ -71,5 +79,5 @@ if __name__ == "__main__":
         main()
     # Graceful exit with keyboard interruption 
     except KeyboardInterrupt:
-        print("Keyboard Interrupted. Exiting the program. ")
+        print("\nKeyboard Interrupted. Exiting the program. ")
         exit(0)
