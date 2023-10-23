@@ -4,3 +4,4 @@ init_repo.sh
 /external-demo
 *.jsonl
 .DS_Store
+*.log
