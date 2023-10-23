@@ -4,19 +4,24 @@ import logging
 from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
 from util.network import get_wifi_info_macos
+
+# the 2 function belows are retired
 # from caida.ip_map_ixp import parseJSONL, printIXs
 
 from caida.map_ixp import extract_ipv4_name_dict_from, longest_prefix_match, get_organization
 
-logging.basicConfig(format="%(asctime)s %(levelname)s %(filename)s:%(funcName)s():%(lineno)i: %(message)s",
+# logging.basicConfig(format="%(asctime)s %(levelname)s %(filename)s:%(funcName)s():%(lineno)i: %(message)s",
+#                     datefmt="%Y-%m-%d %H:%M:%S", level=logging.INFO)
+
+
+logging.basicConfig(format="%(asctime)s:%(funcName)s(): %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S", level=logging.INFO)
 
-
 logger:logging.Logger = logging.getLogger(__name__)
-    
-if __name__ == "__main__":
 
+def main() -> None:
     # Get the WiFi information
+    logger.info(f"Getting WiFi Information")
     info = get_wifi_info_macos()
     for key, value in info.items():
         print(f"{key}: {value}")
@@ -51,12 +56,20 @@ if __name__ == "__main__":
 
     # Analyse IXPs (Longest Prefix Matching)
 
-    prefix_dict = extract_ipv4_name_dict_from("ixs_202307.jsonl")
+    # prefix_dict = extract_ipv4_name_dict_from("ixs_202307.jsonl")
 
-    for ip_address in traceroute_hops:
-        print(longest_prefix_match(ip_address, prefix_dict))
+    # for ip_address in traceroute_hops:
+    #     print(longest_prefix_match(ip_address, prefix_dict))
 
 
     # Find out the organization which the ip address belongs to. 
     for ip_address in traceroute_hops: 
         print(f"IP Address: {ip_address} : Organization: {get_organization(ip_address)}")
+
+if __name__ == "__main__":
+    try: 
+        main()
+    # Graceful exit with keyboard interruption 
+    except KeyboardInterrupt:
+        print("Keyboard Interrupted. Exiting the program. ")
+        exit(0)
