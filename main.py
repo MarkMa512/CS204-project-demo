@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-
+import argparse
 
 from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
@@ -28,7 +28,8 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 
-def main() -> None:
+def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
+    target_url = target_url or "cmu.edu"
     # Get the WiFi information
     logger.info("------------------------------------------------------------")
     logger.info(f"Getting WiFi Information: ")
@@ -39,28 +40,30 @@ def main() -> None:
     logger.info("------------------------------------------------------------")
 
     # Speed Test
-    logger.info(f"Testing network speed for: {network_info['SSID']}")
-    download, upload = speed_test()
-    logger.info(f"Download Speed: {download:.2f} Mbps")
-    logger.info(f"Upload Speed: {upload:.2f} Mbps")
-    logger.info("------------------------------------------------------------")
+    if speed_test_flag: 
+        logger.info(f"Testing network speed for: {network_info['SSID']}")
+        download, upload = speed_test()
+        logger.info(f"Download Speed: {download:.2f} Mbps")
+        logger.info(f"Upload Speed: {upload:.2f} Mbps")
+        logger.info("------------------------------------------------------------")
 
     
-    TARGET_URL = "cmu.edu"
-    logger.info(f"Target URL: {TARGET_URL}")
+
+    logger.info(f"Target URL: {target_url}")
     logger.info("------------------------------------------------------------")
     
     
     # Ping Test
-    logger.info(f"Ping Test to {TARGET_URL}")
-    latency = ping_test(TARGET_URL)
-    if latency:
-        logger.info(f"Average latency to {TARGET_URL} is: {latency} ms")
-    logger.info("------------------------------------------------------------")
+    if ping_test_flag: 
+        logger.info(f"Ping Test to {target_url}")
+        latency = ping_test(target_url)
+        if latency:
+            logger.info(f"Average latency to {target_url} is: {latency} ms")
+        logger.info("------------------------------------------------------------")
 
     # Trace Route
-    logger.info(f"Trace Route to {TARGET_URL}")
-    traceroute_hops = trace_route(TARGET_URL)
+    logger.info(f"Trace Route to {target_url}")
+    traceroute_hops = trace_route(target_url)
 
     ip_address_location_dict = get_locations(traceroute_hops) 
     logger.info("------------------------------------------------------------")
@@ -69,6 +72,7 @@ def main() -> None:
     for ip_address, location in ip_address_location_dict.items():
         logger.info(f"{ip_address} : {location}")
     logger.info("------------------------------------------------------------")
+
     # Analyse IXPs (Exact IP Matching)
     # with open("ixs_202307.jsonl") as ixp_jsonl: 
     # print("List of IXP found: ")
@@ -89,8 +93,22 @@ def main() -> None:
     logger.info("------------------------------------------------------------")
 
 if __name__ == "__main__":
+    
+    # Set up the argument flags 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', dest='target_url', type=str, required=False, help="Target URL for investigation")
+    parser.add_argument('-s', action='store_true', required=False, help="Perform Speed Test for current network")
+    parser.add_argument('-p', action='store_true', required=False, help="Perform Ping Test to target URL")
+
+    # Pass in the arguments 
+    arguments = parser.parse_args()
+    input_target_url = arguments.target_url
+    speed_test_flag = arguments.s 
+    ping_test_flag = arguments.p
+
+    # Invoke main function 
     try: 
-        main()
+        main(input_target_url, speed_test_flag, ping_test_flag)
     # Graceful exit with keyboard interruption 
     except KeyboardInterrupt:
         logger.error("Keyboard Interrupted. Exiting the program. ")
