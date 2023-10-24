@@ -21,7 +21,7 @@ def ping_test(target_url:str, count:int=4):
         return avg_latency
     
     except subprocess.CalledProcessError:
-        print(f"Ping to {target_url} failed!")
+        logger.error(f"Ping to {target_url} failed!")
         return None
 
 def speed_test():

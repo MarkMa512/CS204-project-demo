@@ -14,7 +14,7 @@ def get_ssid_macos():
             if " SSID: " in line:
                 return line.split(":")[1].strip()
     except Exception as e:
-        print(f"Error getting SSID: {e}")
+        logger.error(f"Error getting SSID: {e}")
         return None
 
 def get_ipv4_macos():
@@ -27,7 +27,7 @@ def get_ipv4_macos():
             if "inet " in line and not "inet6" in line:
                 return line.split()[1]
     except Exception as e:
-        print(f"Error getting IPv4: {e}")
+        logger.error(f"Error getting IPv4: {e}")
         return None
 
 def get_wifi_info_macos():

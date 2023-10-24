@@ -30,7 +30,7 @@ def trace_route(target_url:str) -> list:
         if output_line == '' and process.poll() is not None:
             break
         if output_line:
-            print(output_line.strip())
+            logger.info(output_line.strip())
             match = ip_pattern.search(output_line)  # Search for IP in the line
             if match:  # If found
                 hops.append(match.group())  # Add the matched IP
