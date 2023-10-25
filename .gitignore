@@ -5,3 +5,5 @@ init_repo.sh
 *.jsonl
 .DS_Store
 *.log
+
+*key*
