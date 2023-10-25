@@ -4,8 +4,9 @@ import argparse
 
 from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
-from util.network import get_wifi_info_macos
-from caida.map_ixp import extract_ipv4_name_dict_from, longest_prefix_match, get_organization
+from util.network import get_wifi_info_macos, filter_private_ips
+# from caida.map_ixp import get_organization
+from util.gpt_whois import gpt_whois
 
 # Create a logger 
 logger = logging.getLogger()
@@ -35,7 +36,6 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     logger.info(f"Getting WiFi Information: ")
     network_info = get_wifi_info_macos()
     for key, value in network_info.items():
-        # print(f"{key}: {value}")
         logger.info(f"{key}: {value}")
     logger.info("------------------------------------------------------------")
 
@@ -85,11 +85,20 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     # for ip_address in traceroute_hops:
     #     print(longest_prefix_match(ip_address, prefix_dict))
 
+    # filter out the private ip addresses 
+    public_ip_address_list = filter_private_ips(traceroute_hops)
+
 
     # Find out the organization which the ip address belongs to. 
-    logger.info("List of hops identified and their organization: ")
-    for ip_address in traceroute_hops: 
-        logger.info(f"IP Address: {ip_address} : Organization: {get_organization(ip_address)}")
+    logger.info("List of hops identified and their organization with whois and GPT: ")
+    for ip_address in public_ip_address_list: 
+        ip_address_information = gpt_whois(ip_address)
+        regional_registry = ip_address_information["Regional Registry"]
+        network_range = ip_address_information["Network Range"]
+        organization = ip_address_information["Organization"]
+        address = ip_address_information["Address"]
+        logger.info(f"\nRegional Registry: {regional_registry}, \nNetwork Range: {network_range}, \nOrganization:{organization}, \nAddress:{address}")
+        logger.info(".......................................................")
     logger.info("------------------------------------------------------------")
 
 if __name__ == "__main__":

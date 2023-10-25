@@ -1,4 +1,5 @@
 import subprocess
+import ipaddress
 
 import logging
 
@@ -39,3 +40,19 @@ if __name__ == "__main__":
     info = get_wifi_info_macos()
     for key, value in info.items():
         print(f"{key}: {value}")
+
+def filter_private_ips(ip_address_list: list[str])->list[str]:
+    """
+    Filter out private IP addresses from the provided list.
+    
+    :param ip_list: List of IP addresses.
+    :return: List of public IP addresses.
+    """
+    public_ip_address_list = []
+    
+    for ip in ip_address_list:
+        if ipaddress.ip_address(ip).is_private:
+            continue
+        public_ip_address_list.append(ip)
+        
+    return public_ip_address_list
