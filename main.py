@@ -6,7 +6,8 @@ from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
 from util.network import get_wifi_info_macos, filter_private_ips
 # from caida.map_ixp import get_organization
-from util.gpt_whois import gpt_whois
+from util.gpt_whois import identify_IXP
+from util.csv_helper import write_to_csv
 
 # Create a logger 
 logger = logging.getLogger()
@@ -14,7 +15,9 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Get the current date and time and format it as desired for the log filename
-log_filename = datetime.now().strftime("%Y-%m-%d %H:%M:%S_trace.log")
+time_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+log_filename = f"{time_stamp}.log"
+output_filename = f"{time_stamp}.csv"
 
 # Create a file handler for writing the logs to a file
 file_handler = logging.FileHandler(log_filename)
@@ -91,14 +94,12 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
 
     # Find out the organization which the ip address belongs to. 
     logger.info("List of hops identified and their organization with whois and GPT: ")
-    for ip_address in public_ip_address_list: 
-        ip_address_information = gpt_whois(ip_address)
-        regional_registry = ip_address_information["Regional Registry"]
-        network_range = ip_address_information["Network Range"]
-        organization = ip_address_information["Organization"]
-        address = ip_address_information["Address"]
-        logger.info(f"\nRegional Registry: {regional_registry}, \nNetwork Range: {network_range}, \nOrganization:{organization}, \nAddress:{address}")
-        logger.info(".......................................................")
+
+    ixp_list = identify_IXP(public_ip_address_list)
+
+    logger.info(f"Recording the IXP found to a {output_filename}")
+    write_to_csv(ixp_list, output_filename)
+
     logger.info("------------------------------------------------------------")
 
 if __name__ == "__main__":
