@@ -4,9 +4,8 @@ import argparse
 
 from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
-from util.network import get_wifi_info_macos, filter_private_ips
-# from caida.map_ixp import get_organization
-from util.gpt_whois import identify_IXP
+from util.network import get_wifi_info_macos
+from util.gpt_whois import identify_IXP, filter_private_ips
 from util.csv_helper import write_to_csv
 
 # Create a logger 
@@ -76,18 +75,28 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
         logger.info(f"{ip_address} : {location}")
     logger.info("------------------------------------------------------------")
 
-    # Analyse IXPs (Exact IP Matching)
+    """
+    Analyse IXPs (Exact IP Matching)
+    """
+    # from caida.ip_map_ixp import parseJSONL, printIXs
     # with open("ixs_202307.jsonl") as ixp_jsonl: 
     # print("List of IXP found: ")
     # ixs = parseJSONL("ixs_202307.jsonl")
     # printIXs(traceroute_hops, ixs)
 
-    # Analyse IXPs (Longest Prefix Matching)
+
+    """
+    Analyse IXPs (Longest Prefix Matching)
+    """
+    # from caida.map_ixp import extract_ipv4_name_dict_from, longest_prefix_match
     # prefix_dict = extract_ipv4_name_dict_from("ixs_202307.jsonl")
 
     # for ip_address in traceroute_hops:
     #     print(longest_prefix_match(ip_address, prefix_dict))
 
+    """
+    Analyse IXPs (Deduce from `whois` query)
+    """
     # filter out the private ip addresses 
     public_ip_address_list = filter_private_ips(traceroute_hops)
 
