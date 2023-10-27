@@ -5,7 +5,7 @@ import logging
 
 logger:logging.Logger = logging.getLogger(__name__)
 
-def trace_route(target_url:str) -> list:
+def trace_route(target_url:str) -> tuple[list[str], int]:
     """
     Perform a traceroute and obtain all the IP addresses 
     :param target_url:  
@@ -20,9 +20,11 @@ def trace_route(target_url:str) -> list:
         universal_newlines=True
     )
 
-    hops = []
-    # Pattern to match IP addresses
-    ip_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')  
+    identified_hops = []
+    
+    hop_count = -3 # account for the first 3 lines 
+    # Pattern to match IP addresses (with parenthesis to avoid duplication)
+    ip_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')  
     
 
     while True:
@@ -30,13 +32,16 @@ def trace_route(target_url:str) -> list:
         if output_line == '' and process.poll() is not None:
             break
         if output_line:
+            hop_count += 1 
             logger.info(output_line.strip())
             match = ip_pattern.search(output_line)  # Search for IP in the line
             if match:  # If found
-                hops.append(match.group())  # Add the matched IP
+                matched_ip_address = match.group()
+                cleaned_ip_address = matched_ip_address.replace('(', '').replace(')', '')
+                identified_hops.append(cleaned_ip_address)  # Add the matched IP
     
-    hops = hops[1:] # omit the first ip address as it is the destination ip address 
-    return hops
+    identified_hops = identified_hops[1:] # omit the first ip address as it is the destination ip address 
+    return (identified_hops, hop_count)
 
 def get_ip_location(ip_address:str):
     try:
