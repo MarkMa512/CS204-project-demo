@@ -6,7 +6,7 @@ from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
 from util.network import get_wifi_info_macos
 from util.gpt_whois import identify_IXP, filter_private_ips
-from util.csv_helper import write_to_csv
+from util.csv_helper import write_summary_stats_to, write_ip_location_to, write_whois_data_to
 
 # Create a logger 
 logger = logging.getLogger()
@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 # Get the current date and time and format it as desired for the log filename
 time_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 log_filename = f"{time_stamp}.log"
-output_filename = f"{time_stamp}.csv"
+output_filename = f"{time_stamp}_"
 
 # Create a file handler for writing the logs to a file
 file_handler = logging.FileHandler(log_filename)
@@ -42,6 +42,7 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     logger.info("------------------------------------------------------------")
 
     # Speed Test
+    download, upload = ("NA", "NA")
     if speed_test_flag: 
         logger.info(f"Testing network speed for: {network_info['SSID']}")
         download, upload = speed_test()
@@ -49,13 +50,13 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
         logger.info(f"Upload Speed: {upload:.2f} Mbps")
         logger.info("------------------------------------------------------------")
 
-    
 
     logger.info(f"Target URL: {target_url}")
     logger.info("------------------------------------------------------------")
     
     
     # Ping Test
+    latency = "NA"
     if ping_test_flag: 
         logger.info(f"Ping Test to {target_url}")
         latency = ping_test(target_url)
@@ -65,7 +66,7 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
 
     # Trace Route
     logger.info(f"Trace Route to {target_url}")
-    traceroute_hops = trace_route(target_url)
+    traceroute_hops, hop_count = trace_route(target_url)
 
     ip_address_location_dict = get_locations(traceroute_hops) 
     logger.info("------------------------------------------------------------")
@@ -73,6 +74,11 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     logger.info("List of hops identified and their locations: ")
     for ip_address, location in ip_address_location_dict.items():
         logger.info(f"{ip_address} : {location}")
+
+    # Write into csv file
+    write_summary_stats_to(download, upload, latency, hop_count, f"{output_filename}stats.csv")
+    write_ip_location_to(ip_address_location_dict, ("IP Address", "Location"), f"{output_filename}ip_location.csv")
+
     logger.info("------------------------------------------------------------")
 
     """
@@ -107,8 +113,8 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     ixp_list = identify_IXP(public_ip_address_list)
 
     logger.info(f"Recording the IXP found to a {output_filename}")
-    write_to_csv(ixp_list, output_filename)
-
+    write_whois_data_to(ixp_list, f"{output_filename}whois.csv")
+    
     logger.info("------------------------------------------------------------")
 
 if __name__ == "__main__":
