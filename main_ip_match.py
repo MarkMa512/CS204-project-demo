@@ -83,6 +83,7 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     """
     Analyse IXPs (Exact IP Matching)
     """
+    logger.info("Matching the IP found in traceroute with the IXP database via Exact Matching")
     from caida.ip_map_ixp import parseJSONL, printIXs
     with open("ixs_202307.jsonl") as ixp_jsonl: 
         print("List of IXP found: ")
@@ -95,6 +96,7 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     """
     Analyse IXPs (Longest Prefix Matching)
     """
+    logger.info("Matching the IP found in traceroute with the IXP database via Longest Prefix Matching")
     from caida.map_ixp import extract_ipv4_name_dict_from, longest_prefix_match
     prefix_dict = extract_ipv4_name_dict_from("ixs_202307.jsonl")
 
