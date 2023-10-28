@@ -26,10 +26,10 @@ def exportCSV(ips, ixs):
     file.write(data)
 
 
-def printIXs(ips, ixs):
+def printIXs(ips:list[str], ixs:dict[str, str]) -> tuple:
     for ip in ips:
         if findIndex(ip, ixs) is not None:
-            print(ip, "|", ixs[findIndex(ip, ixs)]['ix_id'], "|", ixs[findIndex(ip, ixs)]['name'])
+            return (ip, "|", ixs[findIndex(ip, ixs)]['ix_id'], "|", ixs[findIndex(ip, ixs)]['name'])
 
 
 #Open ixp jsonl and convert into dictionary entries:

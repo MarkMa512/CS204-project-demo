@@ -5,8 +5,7 @@ import argparse
 from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
 from util.network import get_wifi_info_macos
-from util.gpt_whois import identify_IXP, filter_private_ips
-from util.csv_helper import write_summary_stats_to, write_ip_location_to, write_whois_data_to
+from util.csv_helper import write_summary_stats_to, write_ip_location_to
 
 # Create a logger 
 logger = logging.getLogger()
@@ -82,20 +81,26 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     logger.info("------------------------------------------------------------")
 
     """
-    Analyse IXPs (Deduce from `whois` query)
+    Analyse IXPs (Exact IP Matching)
     """
-    # filter out the private ip addresses 
-    public_ip_address_list = filter_private_ips(traceroute_hops)
-
-
-    # Find out the organization which the ip address belongs to. 
-    logger.info("List of hops identified and their organization with whois and GPT: ")
-
-    ixp_list = identify_IXP(public_ip_address_list)
-
-    logger.info(f"Recording the IXP found to a {output_filename}")
-    write_whois_data_to(ixp_list, f"{output_filename}whois.csv")
+    from caida.ip_map_ixp import parseJSONL, printIXs
+    with open("ixs_202307.jsonl") as ixp_jsonl: 
+        print("List of IXP found: ")
+        ixs = parseJSONL("ixs_202307.jsonl")
+        result = printIXs(traceroute_hops, ixs)
+        logger.info(result)
     
+    logger.info("------------------------------------------------------------")
+
+    """
+    Analyse IXPs (Longest Prefix Matching)
+    """
+    from caida.map_ixp import extract_ipv4_name_dict_from, longest_prefix_match
+    prefix_dict = extract_ipv4_name_dict_from("ixs_202307.jsonl")
+
+    for ip_address in traceroute_hops:
+        logger.info(longest_prefix_match(ip_address, prefix_dict))
+
     logger.info("------------------------------------------------------------")
 
 if __name__ == "__main__":
