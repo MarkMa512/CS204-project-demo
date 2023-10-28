@@ -9,7 +9,9 @@ def trace_route(target_url:str) -> tuple[list[str], int]:
     """
     Perform a traceroute and obtain all the IP addresses 
     :param target_url:  
-    :return: a list of IP address of the hops that 
+    :return: (identified_hops, hop_count)
+        identified_hops: a list of IP address of the hops that have been identified 
+        hop_count: the number of hops went through
     
     """
     cmd = ['traceroute',  target_url]
@@ -22,23 +24,31 @@ def trace_route(target_url:str) -> tuple[list[str], int]:
 
     identified_hops = []
     
-    hop_count = -3 # account for the first 3 lines 
+    hop_count = 0 
+
     # Pattern to match IP addresses (with parenthesis to avoid duplication)
     ip_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')  
-    
+    # Pattern to match hop number at the start of the line
+    hop_number_pattern = re.compile(r'^\s*(\d+)')
 
     while True:
         output_line = process.stdout.readline()
         if output_line == '' and process.poll() is not None:
             break
         if output_line:
-            hop_count += 1 
             logger.info(output_line.strip())
+
+             # Extract hop number
+            hop_match = hop_number_pattern.match(output_line)
+            if hop_match:
+                hop_count = max(hop_count, int(hop_match.group(1)))
+            
+            # Extract IP address
             match = ip_pattern.search(output_line)  # Search for IP in the line
             if match:  # If found
-                matched_ip_address = match.group()
-                cleaned_ip_address = matched_ip_address.replace('(', '').replace(')', '')
-                identified_hops.append(cleaned_ip_address)  # Add the matched IP
+                matched_ip_address = match.group(1) # This should remove the parenthesis 
+                if matched_ip_address not in identified_hops:
+                    identified_hops.append(matched_ip_address)  # Add the matched IP if it's not already in the list
     
     identified_hops = identified_hops[1:] # omit the first ip address as it is the destination ip address 
     return (identified_hops, hop_count)
