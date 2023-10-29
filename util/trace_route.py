@@ -5,7 +5,7 @@ import logging
 
 logger:logging.Logger = logging.getLogger(__name__)
 
-def trace_route(target_url:str) -> tuple[list[str], int]:
+def trace_route(target_url:str) -> tuple[list[str],int]:
     """
     Perform a traceroute and obtain all the IP addresses 
     :param target_url:  
@@ -23,13 +23,13 @@ def trace_route(target_url:str) -> tuple[list[str], int]:
     )
 
     identified_hops = []
-    
     hop_count = 0 
+    trace_route_output = []
 
     # Pattern to match IP addresses (with parenthesis to avoid duplication)
     ip_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')  
     # Pattern to match hop number at the start of the line
-    hop_number_pattern = re.compile(r'^\s*(\d+)')
+    hop_number_pattern = re.compile(r'^\s*(\d+)\s')
 
     while True:
         output_line = process.stdout.readline()
@@ -37,7 +37,7 @@ def trace_route(target_url:str) -> tuple[list[str], int]:
             break
         if output_line:
             logger.info(output_line.strip())
-
+            trace_route_output.append(output_line.strip())
              # Extract hop number
             hop_match = hop_number_pattern.match(output_line)
             if hop_match:
@@ -69,5 +69,5 @@ def get_ip_location(ip_address:str):
     except requests.RequestException as e:
         return str(e)
 
-def get_locations(ip_addresses)->dict:
-    return {ip: get_ip_location(ip) for ip in ip_addresses}
+def get_locations(ip_addresses_list: list[str]) -> list[list[str]]:
+    return [[ip, get_ip_location(ip)] for ip in ip_addresses_list]

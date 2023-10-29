@@ -5,8 +5,8 @@ import argparse
 from util.speed_test import ping_test, speed_test
 from util.trace_route import trace_route, get_locations
 from util.network import get_wifi_info_macos
-from util.gpt_whois import identify_IXP, filter_private_ips
-from util.csv_helper import write_summary_stats_to, write_ip_location_to, write_whois_data_to
+from util.gpt_whois import identify_org_details, filter_private_ips, integrate_ip_info
+from util.csv_helper import write_summary_stats_to, write_ip_info
 
 # Create a logger 
 logger = logging.getLogger()
@@ -66,35 +66,36 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
 
     # Trace Route
     logger.info(f"Trace Route to {target_url}")
-    traceroute_hops, hop_count = trace_route(target_url)
+    identified_hops, hop_count = trace_route(target_url)
 
-    ip_address_location_dict = get_locations(traceroute_hops) 
+    # filter out the private ip addresses 
+    public_ip_address_list = filter_private_ips(identified_hops)
+
+    ip_address_location_list = get_locations(public_ip_address_list) 
     logger.info("------------------------------------------------------------")
     
     logger.info("List of hops identified and their locations: ")
-    for ip_address, location in ip_address_location_dict.items():
+    for ip_address, location in ip_address_location_list:
         logger.info(f"{ip_address} : {location}")
 
-    # Write into csv file
-    write_summary_stats_to(download, upload, latency, hop_count, f"{output_filename}stats.csv")
-    write_ip_location_to(ip_address_location_dict, ("IP Address", "Location"), f"{output_filename}ip_location.csv")
+    # Write summary stats into csv file
+    write_summary_stats_to(f"{output_filename}summary.csv", download, upload, latency, hop_count)
 
     logger.info("------------------------------------------------------------")
 
     """
-    Analyse IXPs (Deduce from `whois` query)
+    Analyse IXPs between orgs (Deduce from `whois` query)
     """
-    # filter out the private ip addresses 
-    public_ip_address_list = filter_private_ips(traceroute_hops)
-
-
     # Find out the organization which the ip address belongs to. 
     logger.info("List of hops identified and their organization with whois and GPT: ")
 
-    ixp_list = identify_IXP(public_ip_address_list)
+    org_detail_list = identify_org_details(public_ip_address_list)
 
-    logger.info(f"Recording the IXP found to a {output_filename}")
-    write_whois_data_to(ixp_list, f"{output_filename}whois.csv")
+    logger.info(f"Recording the organizations found to a {output_filename}")
+
+    data: list[list[str]] = integrate_ip_info(ip_address_location_list, org_detail_list)
+    
+    write_ip_info(f"{output_filename}summary.csv", data)
     
     logger.info("------------------------------------------------------------")
 

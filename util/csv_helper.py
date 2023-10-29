@@ -1,6 +1,6 @@
 import csv
 
-def write_whois_data_to(data: list[dict], filename:str)-> None:
+def write_org_detail_to(data: list[dict], filename:str)-> None:
     """
     Write a list of dictionaries to a CSV file.
 
@@ -39,7 +39,7 @@ def write_ip_location_to(data:dict[str, str], header: tuple[str, str], filename:
             writer.writerow([key, value])
 
 
-def write_summary_stats_to(download:str, upload:str, latency:str, hop_count:int, filename:str)->None: 
+def write_summary_stats_to(filename:str, download:str, upload:str, latency:str, hop_count:int, )->None: 
     """
     Write download speed, upload speed, and ping latency in to a CSV file with following format 
 
@@ -58,3 +58,24 @@ def write_summary_stats_to(download:str, upload:str, latency:str, hop_count:int,
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(rows)
+
+def write_ip_info(filename: str, data: list[list[str]]) -> None:
+    """
+    Append the provided data to a CSV file.
+
+    :param filename (str): Name of the CSV file to write to.
+    :param data (list[list[str]]): 2D list containing IP information.
+    """
+
+    with open(filename, 'a', newline='') as file:
+        writer = csv.writer(file)
+
+        # Create an empty row
+        writer.writerow([])
+
+        # Write the headers
+        headers = ['IP Address', 'Location', 'Regional Registry', 'Network Range', 'Organization', 'Address']
+        writer.writerow(headers)
+
+        # Write the data row by row
+        writer.writerows(data)

@@ -74,10 +74,11 @@ def match_ip_to_org(ip_address_range_dict:dict[str:str], ip_address:str)->tuple[
 
     return None
 
-def identify_IXP(ip_address_list: list[str])-> dict[str:str]:
+def identify_org_details(ip_address_list: list[str])-> list[dict[str:str]]:
 
     ip_address_range_dict = {} 
-    ixp_list = []
+    org_detail_list = []
+    org_peering_list = []
 
     for ip_address in ip_address_list: 
         logger.info(f"Querying for IP Address: {ip_address} ...")
@@ -88,6 +89,7 @@ def identify_IXP(ip_address_list: list[str])-> dict[str:str]:
         if result != None: 
             # if found to be previous identified 
             logger.info(f"{ip_address} belong to a previously found organizations: {result}")
+            org_peering_list.append(result)
             logger.info("..................................................")
         else:
             logger.info(f"{ip_address} does not belong to previously found organizations. Run whois command now ...")
@@ -114,9 +116,6 @@ def identify_IXP(ip_address_list: list[str])-> dict[str:str]:
 
             summary =response['choices'][0]['message']['content']
 
-            # print(summary)
-
-
             # # Step 3: Extract necessary information from the summary. 
             regional_registry = None
             network_range = None
@@ -138,7 +137,7 @@ def identify_IXP(ip_address_list: list[str])-> dict[str:str]:
             # put the newly identified range and org pair into the dictionary 
             ip_address_range_dict[network_range] = organization
 
-            ixp_list.append(
+            org_detail_list.append(
                 {
                     'Regional Registry': regional_registry,
                     'Network Range': network_range,
@@ -147,13 +146,45 @@ def identify_IXP(ip_address_list: list[str])-> dict[str:str]:
                 }
             )
 
+            org_peering_list.append((network_range, organization))
+
             logger.info(f"Regional Registry: {regional_registry}")
             logger.info(f"Network Range: {network_range}")
             logger.info(f"Organization:{organization}")
             logger.info(f"Address:{address}")
             logger.info("++++++++++++++++++++++++++++++++++++++++++++++++++")
             
-    return ixp_list
+    return org_detail_list
+
+def integrate_ip_info(ip_address_location: list[list[str]], org_detail_list: list[dict]) -> list[list[str]]:
+    """
+    Integrate IP information from the provided org_detail_list into the ip_address_location list based on the IP range.
+
+    Args:
+    - ip_address_location (list[list[str]]): List containing IP addresses and their locations.
+    - org_detail_list (list[dict]): List of dictionaries containing IP-related information.
+
+    Returns:
+    - list[list[str]]: Updated ip_address_location list with integrated information.
+    """
+    
+    for record in ip_address_location:
+        ip_addr = ipaddress.ip_address(record[0])  # Convert string to IP address object
+        
+        # Check if the IP address is within any of the network ranges
+        for info in org_detail_list:
+            network = ipaddress.ip_network(info['Network Range'])
+            if ip_addr in network:
+                # Add the information from the dictionary to the record
+                record.extend([
+                    info['Regional Registry'],
+                    info['Network Range'],
+                    info['Organization'],
+                    info['Address']
+                ])
+                break  # Exit the inner loop if a match is found
+
+    return ip_address_location
 
 
 # Test
