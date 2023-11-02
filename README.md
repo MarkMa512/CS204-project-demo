@@ -18,6 +18,7 @@ This program aims to provide a detailed analysis for the list of hops, their IP 
 - `key`: file containing your OpenAI API Key 
 - `ixs_yyyymm.jsonl`: CAIDA IXP Dataset 
 - `main.py`: main entry point of the program 
+- `main_ip_match.py`: retired main entry point of the program via ip address matching 
 - `requirement.txt`: contains the relevant python package to be installed. 
 
 ### Features 
@@ -42,7 +43,7 @@ This program aims to provide a detailed analysis for the list of hops, their IP 
 
     After successful execution:  
     - The execution log will be stored as `yyyymmdd_hhmmss.log` in the project root directory. 
-    - A List of organizations identified will be stored as `yyyymmdd_hhmmss.cvs` in the root directory. 
+    - A summary 
 
 ## Prerequisite
 1. Ensure that you have Python 3.9 and above installed  
