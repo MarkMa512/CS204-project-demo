@@ -53,7 +53,7 @@ def trace_route(target_url:str) -> tuple[list[str],int]:
     identified_hops = identified_hops[1:] # omit the first ip address as it is the destination ip address 
     return (identified_hops, hop_count)
 
-def get_ip_location(ip_address:str):
+def get_ip_info(ip_address:str):
     try:
         response = requests.get(f"https://ipinfo.io/{ip_address}/json")
         data = response.json()
@@ -64,10 +64,11 @@ def get_ip_location(ip_address:str):
         city = data.get('city', 'Private')
         region = data.get('region', 'Private')
         country = data.get('country', 'Private')
-        location = f"{city}, {region}, {country}"
+        org = data.get('org', 'Private')
+        location = f"{org}, {city}, {region}, {country}"
         return location
     except requests.RequestException as e:
         return str(e)
 
 def get_locations(ip_addresses_list: list[str]) -> list[list[str]]:
-    return [[ip, get_ip_location(ip)] for ip in ip_addresses_list]
+    return [[ip, get_ip_info(ip)] for ip in ip_addresses_list]
