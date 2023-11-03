@@ -1,7 +1,7 @@
 
 init_repo.sh
 *cache* 
-/external-demo
+/Archieve
 *.jsonl
 .DS_Store
 *.log

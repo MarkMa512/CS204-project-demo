@@ -2,6 +2,7 @@ import subprocess
 import openai
 import logging
 import ipaddress
+import time
 
 # Obtain API key from `key` file stored in the project root directory
 openai.api_key = open("key", "r").read().strip('\n')
@@ -43,13 +44,18 @@ def to_cidr(ip_address_range:str)->str:
     logger.info(f"Converting {ip_address_range} to CIDR format. ")
 
     # If not, then process the "start - end" format
-    start_ip, end_ip = [ip.strip() for ip in ip_address_range.split('-')]
+    try: 
+        start_ip, end_ip = [ip.strip() for ip in ip_address_range.split('-')]
+    except ValueError:
+        logger.error(f"Invalid IP address range has been provided. ")
+        return "0.0.0.0/0"
     
     try:
         combined_ip_network = ipaddress.summarize_address_range(ipaddress.ip_address(start_ip), ipaddress.ip_address(end_ip))
         return ', '.join(str(net) for net in combined_ip_network)
     except ValueError:
-        raise ValueError(f"Could not convert {ip_address_range} to CIDR notation")
+        logger.error(f"Could not convert: {ip_address_range} to CIDR notation")
+        pass
 
         
 def match_ip_to_org(ip_address_range_dict:dict[str:str], ip_address:str)->tuple[str:str]:
@@ -93,6 +99,7 @@ def identify_org_details(ip_address_list: list[str])-> list[dict[str:str]]:
             logger.info("..................................................")
         else:
             logger.info(f"{ip_address} does not belong to previously found organizations. Run whois command now ...")
+            
             # Step 2: Run the whois command.
             try:
                 result = subprocess.check_output(['whois', ip_address], stderr=subprocess.STDOUT).decode('utf-8')
@@ -100,19 +107,32 @@ def identify_org_details(ip_address_list: list[str])-> list[dict[str:str]]:
                 print(f"Error executing whois on {ip_address}.")
                 return {}
             
-            # print(result)
+            retry_count = 3
+            wait_time = 3 
+            response = None
 
-            # Step 2: Pass the result of whois to ChatGPT to identify the Regional Registry, Organization, Network Range,and Address
-            response = openai.ChatCompletion.create(
-                model = "gpt-3.5-turbo",
-                messages =[
-                    {
-                        "role":"user", 
-                        "content": f"From the whois details in {result} for ip address {ip_address}, identify the Regional Registry, Network Range, Organization,and Address for {ip_address}. Present the solution in following format:\nRegional Registry:Regional_Registry_Identified\nOrganization:`Organization_identified`\nNetwork Range:`Network_Range_Identified`\nAddress:`Address_Identified",
-                    }
-                ],
-                max_tokens=100
-                )
+            for attempt in range(retry_count): 
+                try: 
+                    # Step 2: Pass the result of whois to ChatGPT to identify the Regional Registry, Organization, Network Range,and Address
+                    response = openai.ChatCompletion.create(
+                        model = "gpt-3.5-turbo",
+                        messages =[
+                            {
+                                "role":"user", 
+                                "content": f"From the whois details in {result} for ip address {ip_address}, identify the Regional Registry, Network Range, Organization,and Address for {ip_address}. Present the solution in following format:\nRegional Registry:Regional_Registry_Identified\nOrganization:`Organization_identified`\nNetwork Range:`Network_Range_Identified`\nAddress:`Address_Identified",
+                            }
+                        ],
+                        max_tokens=200
+                        )
+                    # if success, break 
+                    break 
+                except openai.error.OpenAIError as e: 
+                    logger.error(f"Error on attempt {attempt + 1}: {e}")
+                    # if this is the last attempt, raise exception 
+                    if attempt == retry_count - 1:
+                            raise
+                    # If not the last attempt, wait for a bit before retrying
+                    time.sleep(wait_time)
 
             summary =response['choices'][0]['message']['content']
 
@@ -192,6 +212,9 @@ if __name__ == "__main__":
     print(to_cidr("128.2.0.0/16"))       # '128.2.0.0/16'
     print(to_cidr("128.2.0.0 - 128.2.255.255"))  # '128.2.0.0/16'
     print(to_cidr("192.168.0.0 - 192.168.1.255"))  # '192.168.0.0/23'
+    print(to_cidr(""))
+    print(to_cidr("192.168.0.0"))
+
 
     ip_range_dict = {
     "192.168.0.0/24": "Organization A",
