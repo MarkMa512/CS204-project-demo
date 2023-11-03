@@ -91,7 +91,7 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
 
     org_detail_list = identify_org_details(public_ip_address_list)
 
-    logger.info(f"Recording the organizations found to a {output_filename}")
+    logger.info(f"Recording the organizations found to a {output_filename}summary.csv")
 
     data: list[list[str]] = integrate_ip_info(ip_address_location_list, org_detail_list)
     
