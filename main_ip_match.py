@@ -67,16 +67,16 @@ def main(target_url:str, speed_test_flag:bool, ping_test_flag:bool) -> None:
     logger.info(f"Trace Route to {target_url}")
     traceroute_hops, hop_count = trace_route(target_url)
 
-    ip_address_location_dict = get_locations(traceroute_hops) 
-    logger.info("------------------------------------------------------------")
+    # ip_address_location_dict = get_locations(traceroute_hops) 
+    # logger.info("------------------------------------------------------------")
     
-    logger.info("List of hops identified and their locations: ")
-    for ip_address, location in ip_address_location_dict.items():
-        logger.info(f"{ip_address} : {location}")
+    # logger.info("List of hops identified and their locations: ")
+    # for ip_address, location in ip_address_location_dict.items():
+    #     logger.info(f"{ip_address} : {location}")
 
     # Write into csv file
-    write_summary_stats_to(download, upload, latency, hop_count, f"{output_filename}stats.csv")
-    write_ip_location_to(ip_address_location_dict, ("IP Address", "Location"), f"{output_filename}ip_location.csv")
+    # write_summary_stats_to(download, upload, latency, hop_count, f"{output_filename}stats.csv")
+    # write_ip_location_to(ip_address_location_dict, ("IP Address", "Location"), f"{output_filename}ip_location.csv")
 
     logger.info("------------------------------------------------------------")
 
