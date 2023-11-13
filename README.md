@@ -6,7 +6,7 @@ This program aims to provide a detailed analysis for the list of hops, their IP 
 ### Directories and Files 
 
 -  `/util`: 
-    - `csv_helper.py`: contains function that writes the IXP data found into csv file 
+    - `csv_helper.py`: contains function that writes the information regarding each IP found into csv file 
     - `gpt_whois.py`: contains function that queries an IP address via `whois` program and uses OpenAI GPT API to extract the essential information
     - `network.py`: contains functions used to obtain network information, such as the SSID and IP address 
     - `speed_test.py`: contains functions used to perform ping test and speed test 
